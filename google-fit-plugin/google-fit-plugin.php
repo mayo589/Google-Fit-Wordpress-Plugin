@@ -100,7 +100,7 @@ function setAllTokens(){
 			$auth_token = getAuthToken($settings["google_app_client_id"] , $settings["google_app_redirect_uri"]);
 			update_option("google_app_auth_token", $auth_token);
 		}
-		$now = strtotime( date('d/m/Y h:i:s', time()) );
+		$now = strtotime( date('d/m/Y H:i:s', time()) );
 
 		//We now have auth token
 		if($access_token !== "" && $access_token_exp !== "" && strtotime($access_token_exp) > $now){
@@ -108,11 +108,11 @@ function setAllTokens(){
 
 		}
 		else if($access_token !== "" && $access_token_exp !== "" && strtotime($access_token_exp) <= $now && $refresh_token !== ""){
-			echo "now is ".date('d/m/Y h:i:s', time()). "exp is ". $access_token_exp;
+			echo "now is ".date('d/m/Y H:i:s', time()). "exp is ". $access_token_exp;
 			//Access Token is saved, but expired, obtaining new with Refresh Token
 			$response = getAccessRefreshTokens($auth_token, $settings["google_app_client_id"], $settings["google_app_client_secret"], $settings["google_app_redirect_uri"], $refresh_token);
 			update_option("google_app_access_token", $response->access_token);
-			$expDateTime = date('d/m/Y h:i:s', time() + (intval($response->expires_in) - 100));
+			$expDateTime = date('d/m/Y H:i:s', time() + (intval($response->expires_in) - 100));
 			update_option("google_app_access_token_exp", $expDateTime);
 		}
 		else{
@@ -120,7 +120,7 @@ function setAllTokens(){
 			$response = getAccessRefreshTokens($auth_token, $settings["google_app_client_id"], $settings["google_app_client_secret"], $settings["google_app_redirect_uri"], null);
 			update_option("google_app_access_token", $response->access_token);
 			update_option("google_app_refresh_token", $response->refresh_token);
-			$expDateTime = date('d/m/Y h:i:s', time() + (intval($response->expires_in) - 100));
+			$expDateTime = date('d/m/Y H:i:s', time() + (intval($response->expires_in) - 100));
 			update_option("google_app_access_token_exp", $expDateTime);
 		}
 	}
