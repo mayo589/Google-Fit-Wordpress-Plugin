@@ -9,10 +9,11 @@
  * License: MIT
  */
 
+include( plugin_dir_path( __FILE__ ) . 'google-fit-shortcodes.php');
 
 add_action( 'admin_init' , 'register_settings' );
-//wp_enqueue_script('google-oAuth', plugin_dir_url(__FILE__) . 'js/scripts.js');
 add_action('admin_menu', 'plugin_menu');
+add_shortcode( 'google-fit', 'google_fit_shotcode' );
 
 function register_settings() {
     register_setting( 'google-fit-group', 'google-fit-settings' );
@@ -108,7 +109,6 @@ function setAllTokens(){
 
 		}
 		else if($access_token !== "" && $access_token_exp !== "" && strtotime($access_token_exp) <= $now && $refresh_token !== ""){
-			echo "now is ".date('d/m/Y H:i:s', time()). "exp is ". $access_token_exp;
 			//Access Token is saved, but expired, obtaining new with Refresh Token
 			$response = getAccessRefreshTokens($auth_token, $settings["google_app_client_id"], $settings["google_app_client_secret"], $settings["google_app_redirect_uri"], $refresh_token);
 			update_option("google_app_access_token", $response->access_token);
