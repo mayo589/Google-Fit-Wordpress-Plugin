@@ -119,39 +119,7 @@ function getAggregatedData(dataTypeName, startDate, endDate, bucketMillis) {
     return defer;
 }
 
-
-/*
-    returns Activity index by Activity name
-*/
-function getActivityTypeIndex(name){
-    for(var i = 0; i < activityTypes.length; i++){
-        if(name == activityTypes[i])
-            return i;
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function displayAllCharts(){
+function displayAll(){
     $.when(getLastNMonthsValues(6, 1, DataTypeName.CALORIES)).then(function (dataCals) {
         displayChart(dataCals, getLastNMonthNames(6, 1), DataTypeName.CALORIES, 'bar', 'chart-calories'); 
     });
@@ -171,6 +139,20 @@ function displayAllCharts(){
     $.when( getLastNMonthsActivities(1, 1) ).then(function (dataMonthPie) {
         displayMonthPieChartActivities(dataMonthPie);
     });
+
+    jQuery('#stats-calendar').datetimepicker({
+        format:'d.m.Y',
+        inline:true,
+        timepicker:false,
+        defaultDate: (new Date()).setHours(0,0,0,0),
+        /*onChangeDateTime: function(current_time,$input){
+            displayCalendarDayStats(current_time);
+        },*/
+        onGenerate: function(current_time,$input){
+            $(this).addClass("stats-calendar-container"); //For css styling      
+            displayCalendarDayStats(current_time);
+        }
+    });  
 }
 
 function displayChart(data, labels, dataType, chartType, elementId){
@@ -221,154 +203,7 @@ function displayChart(data, labels, dataType, chartType, elementId){
             },
         });
 }
-/*
-function displayChartCalories(dataCals) {
-    var ctxCals = document.getElementById("chart-calories").getContext('2d');
-    var chartCals = new Chart(ctxCals,
-        {
-            type: 'bar',
-            data: {
-                labels: getLastNMonthNames(6, 1),
-                datasets: [{
-                    label: 'Total Calories per month',
-                    data: dataCals,
-                    borderWidth: 1,
-                    backgroundColor: "rgba(75,192,192,0.6)",
-                    borderColor: "rgba(75,192,192,1)",
-                    borderJoinStyle: 'miter',
-                    pointHitRadius: 10,
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            callback: function (value, index, values) {
-                                return Math.round(value / 1000) + "k";
-                            },
-                        }
-                    }]
-                },
-                tooltips: {
-                    mode: 'label',
-                    callbacks: {
-                        title: function (item, data) {
-                            var title = "";
-                            title += "Total Calorie outtake in " + item[0].xLabel + ": " + Math.round(item[0].yLabel);
-                            return title;
-                        },
-                        label: function (item, data) {
-                            var afterTitle = "";
-                            var month = getMonthByName(item.xLabel);
-                            afterTitle += "Average per day: " + Math.round(parseInt(item.yLabel) / daysInMonth(month, (new Date()).getFullYear()));
-                            return afterTitle;
-                        },
 
-                    }
-                },
-                responsive: false
-            },
-        });
-}
-
-function displayChartDistance(dataDistance){
-    var ctxDist = document.getElementById("chart-distance").getContext('2d');
-    var chartDistance = new Chart(ctxDist, 
-    {
-        type: 'line',
-        data: {
-            labels: getLastNMonthNames(6, 1),
-            datasets: [{
-                label: 'Total Distance per month',
-                data: dataDistance,
-                borderWidth: 1,
-                backgroundColor: "rgba(63,191,63,0.6)",
-                borderColor: "rgba(63,191,63,1)",
-                borderJoinStyle: 'miter',
-                pointHitRadius: 10,
-            }]
-        },
-        options: {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        callback: function(value, index, values) {
-                                return Math.round(value / 1000) + " km";
-                            },
-                    }
-                }]
-            },
-            tooltips: {
-                mode: 'label',
-                callbacks: {
-                    title: function(item, data) {
-                        var title = "";
-                        title += "Total distance in " + item[0].xLabel + ": " + (parseInt(item[0].yLabel) / 1000).toFixed(1)   + " km";
-                        return title;
-                    },
-                    label: function(item, data){
-                        var afterTitle = "";
-                        var month = getMonthByName(item.xLabel);
-                        afterTitle += "Average per day: " + ( (parseInt(item.yLabel) /  daysInMonth(month, (new Date()).getFullYear())) / 1000 ).toFixed(1) + " km"; 
-                        return afterTitle;
-                    },
-                    
-                }
-            },
-            responsive: false
-        }, 
-    });
-}
-
-function displayChartSteps(dataSteps){
-    var ctxSteps = document.getElementById("chart-steps").getContext('2d');
-    var chartSteps = new Chart(ctxSteps, 
-    {
-        type: 'bar',
-        data: {
-            labels: getLastNMonthNames(6, 1),
-            datasets: [{
-                label: 'Total step count per month',
-                data: dataSteps,
-                borderWidth: 1,
-                backgroundColor: "rgba(191,63,63,0.6)",
-                borderColor: "rgba(191,63,63,1)",
-                borderJoinStyle: 'miter',
-                pointHitRadius: 10,
-            }]
-        },
-        options: {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                            callback: function(value, index, values) {
-                                return Math.round(value / 1000) + "k";
-                            },
-                    }
-                }]
-            },
-            tooltips: {
-                mode: 'label',
-                callbacks: {
-                    title: function(item, data) {
-                        var title = "";
-                        title += "Total step count in " + item[0].xLabel + ": " + parseInt(item[0].yLabel);
-                        return title;
-                    },
-                    label: function(item, data){
-                        var afterTitle = "";
-                        var month = getMonthByName(item.xLabel);
-                        afterTitle += "Average per day: " + Math.round( (parseInt(item.yLabel) /  daysInMonth(month, (new Date()).getFullYear())) ); 
-                        return afterTitle;
-                    },
-                    
-                }
-            },
-            responsive: false
-        }, 
-    });
-}
-*/
 function displayChartActivities(dataActivities, numOfMonth, offset, chartType){
     if(!chartType)
         chartType = "line";
@@ -618,128 +453,7 @@ function isActivitySport(activityName){
             activityName.match(/sleep/i) ||
             activityName.match(/vehicle/i) ||
             activityName.toLowerCase() == "walking");
-} 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*utils*/
-function msToTime(s, type) {
-    var strSecs, strHours, strMins = "";
-    if(type == "short"){
-        strHours = "h ";
-        strMins = "m ";
-        strSecs = "s ";
-    }
-    else{
-        strHours = " hours ";
-        strMins = " minutes ";
-        strSecs = " seconds ";
-    }
-    
-  var ms = s % 1000;
-  s = (s - ms) / 1000;
-  var secs = s % 60;
-  s = (s - secs) / 60;
-  var mins = s % 60;
-  var hrs = (s - mins) / 60;
-
-  var retVal = "";
-  if(hrs > 0){
-        retVal += hrs + strHours; 
-  }
-  if(mins > 0){
-      retVal += mins + strMins;
-  }
-  if(secs > 0 || retVal === ""){
-      retVal += secs + strSecs;
-  }
-  return retVal;
 }
-
-function days_between(date1, date2) {
-    var ONE_DAY = 1000 * 60 * 60 * 24;
-    var date1_ms = date1.getTime();
-    var date2_ms = date2.getTime();
-    var difference_ms = Math.abs(date1_ms - date2_ms);
-    return Math.round(difference_ms/ONE_DAY);
-}
-
-Date.prototype.addDays = function(days){
-    var dat = new Date(this.valueOf());
-    dat.setDate(dat.getDate() + days);
-    return dat;
-};
-
-
-function daysInMonth(month,year) {
-    return new Date(year, month, 0).getDate();
-}
-
-var monthNames = ["January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
-function getMonthByName(monthName){
-    for(var i = 0; i < monthNames.length; i++){
-        if(monthNames[i] == monthName)
-            return i;
-    }
-}
-
-function getLastNMonthNames(numOfMonth, offset){
-    var retMonthNames = [];
-    for(var i = 0; i < numOfMonth; i++){
-        var d = new Date();
-        d.setMonth(d.getMonth()-i-offset);
-        retMonthNames.push(monthNames[d.getMonth()]);
-    }
-    return retMonthNames.reverse();
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*
     Array of supported Google Fit Activity types

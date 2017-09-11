@@ -1,6 +1,10 @@
 <?php
+    wp_enqueue_style('jqueryDateTimePickerCss', plugin_dir_url(__FILE__) . 'css/jquery.datetimepicker.css');
+
     wp_enqueue_script('charts-js', plugin_dir_url(__FILE__) . 'js/chart.js');
     wp_enqueue_script('randomColor', plugin_dir_url(__FILE__) . 'js/randomColor.js');
+    wp_enqueue_script('jqueryDateTimePickerJs', plugin_dir_url(__FILE__) . 'js/jquery.datetimepicker.js', array('jquery'));
+    wp_enqueue_script('utilities', plugin_dir_url(__FILE__) . 'js/utilities.js');
     wp_enqueue_script('google-oAuth-Rest-Client', plugin_dir_url(__FILE__) . 'js/GoogleFitRest.js');
     wp_enqueue_script('gfitRest', plugin_dir_url(__FILE__) . 'js/gFitRest.js');
     
