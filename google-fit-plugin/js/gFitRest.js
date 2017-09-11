@@ -6,6 +6,10 @@
     Basic functionalities for seting up oAuth connection for Google APIs
 */
 
+jQuery(document).ready(function() {
+    displayAll();
+});
+
 var URL_FTINESS_API = "https://www.googleapis.com/fitness/v1/";
 
 var DataTypeName = {};
@@ -348,38 +352,34 @@ function displayCalendarDayStats(current_time){
 
 function getLastNMonthsValues(numOfMonth, offset, dataType){
     var defer = $.Deferred();
-
-    var monthCals = [];
+    var monthValues = [];
+    
     var today = new Date();
-    var startDate = new Date(today.getFullYear(), today.getMonth()-numOfMonth-offset + 1, 1, 0, 0, 0, 0);
-    var endDate = new Date(today.getFullYear(), today.getMonth()-offset + 1, 0, 0, 0, 0, 0);
+    var startDate = new Date(today.getFullYear(), today.getMonth() - numOfMonth - offset + 1, 1, 0, 0, 0, 0);
+    var endDate = new Date(today.getFullYear(), today.getMonth() - offset + 1, 0, 0, 0, 0, 0);
     
     var tmpDate = startDate;
+    var numDaysBetween = days_between(startDate, endDate);
     
-    var numDays = days_between(startDate, endDate);
     var requests = [];
     //Maximum treshold for query is 90 days
-    for(var i = 1; i <= numDays; i = i + 89){
-        var daysToAdd = 0;
-        if(i+89 <= numDays)
-            daysToAdd = 89;
-        else
-            daysToAdd = numDays - i + 1;
+    for (var i = 1; i <= numDaysBetween; i = i + 89) {
+        var daysToAdd = (i + 89 <= numDaysBetween) ? 89 : (numDaysBetween - i + 1);
         
-        requests.push(getAggregatedData(dataType, tmpDate, tmpDate.addDays(daysToAdd), BucketTimeMillis.DAY ) );
+        requests.push(getAggregatedData(dataType, tmpDate, tmpDate.addDays(daysToAdd), BucketTimeMillis.DAY));
         tmpDate = tmpDate.addDays(daysToAdd);
     }
 
     $.when.apply($, requests).done(function () {
         $.each(arguments, function (i, data) {
             for(var j = 0; j < data.length; j++){
-                if(typeof monthCals[data[j].endDate.getMonth()]  == "undefined")
-                    monthCals[data[j].endDate.getMonth()] = 0;
+                if(typeof monthValues[data[j].endDate.getMonth()]  == "undefined")
+                    monthValues[data[j].endDate.getMonth()] = 0;
              
-                monthCals[data[j].endDate.getMonth()] += data[j].value;
+                monthValues[data[j].endDate.getMonth()] += data[j].value;
             }
         });
-        return defer.resolve(monthCals.filter(function(val){return val;}));
+        return defer.resolve(monthValues.filter(function(val){return val;}));
     });
     return defer.promise();
 }
@@ -398,7 +398,7 @@ function getLastNMonthsActivities(numOfMonth, offset) {
     var requests = [];
     //Maximum treshold for query is 90 days
     for (var i = 1; i <= numDaysBetween; i = i + 89) {
-        var daysToAdd = (i + 89 <= numDaysBetween) ? 89 :  (numDaysBetween - i + 1);
+        var daysToAdd = (i + 89 <= numDaysBetween) ? 89 : (numDaysBetween - i + 1);
 
         requests.push(getAggregatedData(DataTypeName.ACTIVITIES, tmpDate, tmpDate.addDays(daysToAdd), BucketTimeMillis.DAY));
         tmpDate = tmpDate.addDays(daysToAdd);
@@ -442,7 +442,6 @@ function getLastNMonthsActivities(numOfMonth, offset) {
         });
         return defer.resolve(monthActivities.filter(function (val) { return val; }));
     });
-
     return defer.promise();
 }
 

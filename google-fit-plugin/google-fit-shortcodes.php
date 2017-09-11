@@ -7,6 +7,7 @@
     wp_enqueue_script('utilities', plugin_dir_url(__FILE__) . 'js/utilities.js');
     wp_enqueue_script('google-oAuth-Rest-Client', plugin_dir_url(__FILE__) . 'js/GoogleFitRest.js');
     wp_enqueue_script('gfitRest', plugin_dir_url(__FILE__) . 'js/gFitRest.js');
+
     
     //TODO ensure or refresh access token... need to create separate google-fit-api.php
 
