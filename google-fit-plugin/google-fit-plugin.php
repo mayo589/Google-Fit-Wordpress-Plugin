@@ -10,6 +10,7 @@
  */
 
 include( plugin_dir_path( __FILE__ ) . 'google-fit-shortcodes.php');
+include( plugin_dir_path( __FILE__ ) . 'google-fit-api.php');
 
 add_action( 'admin_init' , 'register_settings' );
 add_action('admin_menu', 'plugin_menu');
@@ -96,28 +97,28 @@ function setAllTokens(){
 	$refresh_token = get_option('google_app_refresh_token', "");
 
 	if($settings["google_app_client_id"] != "" && $settings["google_app_redirect_uri"] != "" && $settings["google_app_client_secret"] != ""){
+        //Check if app credentials are saved
 		if($auth_token === ""){
-			//First, need to obtain and store Authorization Token
+			//Need to obtain and store Google Authorization Token
 			$auth_token = getAuthToken($settings["google_app_client_id"] , $settings["google_app_redirect_uri"]);
 			update_option("google_app_auth_token", $auth_token);
 		}
 		$now = strtotime( date('d/m/Y H:i:s', time()) );
 
-		//We now have auth token
+		//Auth token is saved
 		if($access_token !== "" && $access_token_exp !== "" && strtotime($access_token_exp) > $now){
 			//Access Token is saved and still valid
-
 		}
 		else if($access_token !== "" && $access_token_exp !== "" && strtotime($access_token_exp) <= $now && $refresh_token !== ""){
 			//Access Token is saved, but expired, obtaining new with Refresh Token
-			$response = getAccessRefreshTokens($auth_token, $settings["google_app_client_id"], $settings["google_app_client_secret"], $settings["google_app_redirect_uri"], $refresh_token);
+			$response = getRefreshToken($auth_token, $settings["google_app_client_id"], $settings["google_app_client_secret"], $settings["google_app_redirect_uri"]);
 			update_option("google_app_access_token", $response->access_token);
 			$expDateTime = date('d/m/Y H:i:s', time() + (intval($response->expires_in) - 100));
 			update_option("google_app_access_token_exp", $expDateTime);
 		}
 		else{
 			//Access Token is not saved yet
-			$response = getAccessRefreshTokens($auth_token, $settings["google_app_client_id"], $settings["google_app_client_secret"], $settings["google_app_redirect_uri"], null);
+			$response = getAccessToken($auth_token, $settings["google_app_client_id"], $settings["google_app_client_secret"], $settings["google_app_redirect_uri"]);
 			update_option("google_app_access_token", $response->access_token);
 			update_option("google_app_refresh_token", $response->refresh_token);
 			$expDateTime = date('d/m/Y H:i:s', time() + (intval($response->expires_in) - 100));
@@ -132,62 +133,6 @@ function resetTokens(){
 	update_option("google_app_access_token", "");
 	update_option("google_app_access_token_exp", "");
 	update_option("google_app_refresh_token", "");
-}
-
-function getAuthToken($client_id, $client_redirect){
-	if(isset($_GET['code'])) {
-		return $_GET['code'];
-	}
-	else{
-		
-		$url = 'https://accounts.google.com/o/oauth2/auth';
-		$scope = "https://www.googleapis.com/auth/fitness.activity.read+https://www.googleapis.com/auth/fitness.activity.write+https://www.googleapis.com/auth/fitness.body.read+https://www.googleapis.com/auth/fitness.body.write+https://www.googleapis.com/auth/fitness.location.read+https://www.googleapis.com/auth/fitness.location.write";
-		$params = array(
-			"scope" => stripslashes($scope),
-			"client_id" => $client_id,
-			"redirect_uri" => $client_redirect,
-			"response_type" => "code",
-			"approval_prompt" => "force",
-			"access_type" => "offline"
-		);
-
-		$request_to = $url . '?' . urldecode(http_build_query($params));
-		header("Location: " . $request_to);
-	}
-}
-
-function getAccessRefreshTokens($auth_token, $client_id, $client_secret,$client_redirect, $refresh_token){
-    $url = 'https://accounts.google.com/o/oauth2/token';
-	$params = array(
-			"client_id" => $client_id,
-			"client_secret" => $client_secret,
-	);
-
-	if($refresh_token == null || $refresh_token == ""){
-		$params["code"] = $auth_token;
-		$params["redirect_uri"] = $client_redirect;
-		$params["grant_type"] = "authorization_code";
-	}
-	else{
-		$params["grant_type"] = "refresh_token";
-		$params["refresh_token"] = $refresh_token;
-	}
-
-	$ch = curl_init($url);
-	curl_setopt($ch, CURLOPT_POST, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS,  urldecode(http_build_query($params)));
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	$response = curl_exec($ch);
-	$responseObj = json_decode($response);
-	if($responseObj->error != null){
-		echo "<b> Error in getting Access Token: </b>";
-		echo $responseObj->error.' - ';
-		echo $responseObj->error_description."<br /><br />";
-		return null;
-	}
-	else{
-		return $responseObj;
-	}
 }
 
 ?>
